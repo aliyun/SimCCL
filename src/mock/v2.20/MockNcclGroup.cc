@@ -99,9 +99,19 @@ namespace MockNccl {
     }
     // init EP
     std::map<int,GroupInfo> AllTPGroups;
-    for(auto it = AllGroups.begin();it!=AllGroups.end();it++){
-      if(it->second.type==TP){
-        AllTPGroups[it->second.group_index]=it->second;
+    if (_TP_size > 1) {
+      for (auto it = AllGroups.begin(); it != AllGroups.end(); ++it) {
+        if (it->second.type == TP) {
+          AllTPGroups[it->second.group_index] = it->second;
+        }
+      }
+    } else if (_TP_size == 1) {
+      // init with single-node TP groups in case TP = 1
+      NVSwitchs.clear();
+      for (int i = 0; i < _ngpus; i++) {
+        ranks.clear();
+        ranks.push_back(i);
+        AllTPGroups[i] = GroupInfo(i, TP, 1, 1, ranks, NVSwitchs);
       }
     }
     if(_EP_size>1){
